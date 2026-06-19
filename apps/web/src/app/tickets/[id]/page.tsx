@@ -12,6 +12,7 @@ export default function TicketDetailsPage() {
   
   const [ticket, setTicket] = useState<any>(null);
   const [newComment, setNewComment] = useState("");
+  const [isInternal, setIsInternal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,6 +57,7 @@ export default function TicketDetailsPage() {
     try {
       const formData = new FormData();
       formData.append("text", newComment);
+      formData.append("isInternal", isInternal.toString());
       
       const file = (window as any).commentFile;
       if (file) {
@@ -72,6 +74,7 @@ export default function TicketDetailsPage() {
 
       if (res.ok) {
         setNewComment("");
+        setIsInternal(false);
         (window as any).commentFile = null;
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         if (fileInput) fileInput.value = "";
@@ -133,6 +136,11 @@ export default function TicketDetailsPage() {
   }
 
   const slaRemaining = calculateSlaHoursRemaining();
+
+  const timelineItems = [
+    ...(ticket.comments || []).map((c: any) => ({ ...c, type: 'COMMENT' })),
+    ...(ticket.auditLogs || []).map((a: any) => ({ ...a, type: 'AUDIT' })),
+  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-4xl">
@@ -239,32 +247,53 @@ export default function TicketDetailsPage() {
         </h2>
 
         <div className="space-y-4">
-          {ticket.comments.length === 0 ? (
+          {timelineItems.length === 0 ? (
             <p className="text-center text-sm text-foreground/40 py-8 bg-white/5 rounded-2xl border border-white/5 border-dashed">
-              Nenhuma mensagem enviada ainda.
+              Nenhuma atividade registrada ainda.
             </p>
           ) : (
-            ticket.comments.map((comment: any) => {
-              const isIT = comment.author?.role === 'ADMIN';
+            timelineItems.map((item: any) => {
+              if (item.type === 'AUDIT') {
+                return (
+                  <div key={`audit-${item.id}`} className="flex items-center gap-3 px-4 py-2 opacity-60 text-sm bg-white/5 rounded-xl border border-white/5">
+                    <Shield className="w-4 h-4 text-foreground/40" />
+                    <span>
+                      <strong className="text-foreground/80">{item.user?.name || 'Sistema'}</strong> {' '}
+                      {item.action === 'CREATED' && 'abriu este chamado'}
+                      {item.action === 'ASSIGNED' && 'assumiu o chamado'}
+                      {item.action === 'STATUS_CHANGED' && `alterou o status para ${item.details === 'OPEN' ? 'Aberto' : item.details === 'IN_PROGRESS' ? 'Em Progresso' : item.details === 'WAITING' ? 'Aguardando Usuário' : 'Resolvido'}`}
+                    </span>
+                    <span className="text-xs text-foreground/40 ml-auto">
+                      {format(new Date(item.createdAt), "dd/MM HH:mm")}
+                    </span>
+                  </div>
+                );
+              }
+
+              const isIT = item.author?.role === 'ADMIN';
+              
+              if (item.isInternal && !isAdmin) return null;
+
               return (
-                <div key={comment.id} className={`glass-panel p-5 rounded-2xl border ${isIT ? 'border-primary-500/30 bg-primary-500/5 ml-8' : 'border-white/10 mr-8'} flex gap-4`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isIT ? 'bg-primary-500/20 text-primary-400' : 'bg-white/10 text-foreground/70'}`}>
-                    <User className="w-5 h-5" />
+                <div key={`comment-${item.id}`} className={`glass-panel p-5 rounded-2xl border ${item.isInternal ? 'border-yellow-500/30 bg-yellow-500/5' : isIT ? 'border-primary-500/30 bg-primary-500/5 ml-8' : 'border-white/10 mr-8'} flex gap-4`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${item.isInternal ? 'bg-yellow-500/20 text-yellow-500' : isIT ? 'bg-primary-500/20 text-primary-400' : 'bg-white/10 text-foreground/70'}`}>
+                    {isIT ? <Shield className="w-5 h-5" /> : <User className="w-5 h-5" />}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-semibold text-sm flex items-center gap-2">
-                        {comment.author?.name}
+                        {item.author?.name}
                         {isIT && <span className="text-[10px] uppercase bg-primary-500 text-white px-1.5 py-0.5 rounded font-bold">SUPORTE TI</span>}
+                        {item.isInternal && <span className="text-[10px] uppercase bg-yellow-500 text-black px-1.5 py-0.5 rounded font-bold">NOTA INTERNA</span>}
                       </span>
                       <span className="text-xs text-foreground/40">
-                        {format(new Date(comment.createdAt), "dd/MM/yyyy HH:mm")}
+                        {format(new Date(item.createdAt), "dd/MM/yyyy HH:mm")}
                       </span>
                     </div>
-                    <p className="text-sm text-foreground/80 whitespace-pre-wrap">{comment.text}</p>
-                    {comment.attachmentUrl && (
+                    <p className="text-sm text-foreground/80 whitespace-pre-wrap">{item.text}</p>
+                    {item.attachmentUrl && (
                       <div className="mt-3">
-                        <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${comment.attachmentUrl}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs text-primary-400 hover:text-primary-300 bg-primary-500/10 px-3 py-1.5 rounded-full">
+                        <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${item.attachmentUrl}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs text-primary-400 hover:text-primary-300 bg-primary-500/10 px-3 py-1.5 rounded-full">
                           📎 Anexo
                         </a>
                       </div>
@@ -297,16 +326,29 @@ export default function TicketDetailsPage() {
               rows={2}
             />
             <div className="flex items-center justify-between border-t border-white/5 pt-3">
-              <input
-                type="file"
-                onChange={(e) => {
-                  const target = e.target as HTMLInputElement;
-                  if (target.files) {
-                    (window as any).commentFile = target.files[0];
-                  }
-                }}
-                className="text-xs text-foreground/50 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-medium file:bg-white/5 file:text-foreground/70 hover:file:bg-white/10 cursor-pointer"
-              />
+              <div className="flex items-center gap-4">
+                <input
+                  type="file"
+                  onChange={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.files) {
+                      (window as any).commentFile = target.files[0];
+                    }
+                  }}
+                  className="text-xs text-foreground/50 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-medium file:bg-white/5 file:text-foreground/70 hover:file:bg-white/10 cursor-pointer"
+                />
+                {isAdmin && (
+                  <label className="flex items-center gap-2 text-xs text-yellow-500/80 cursor-pointer hover:text-yellow-500 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={isInternal}
+                      onChange={(e) => setIsInternal(e.target.checked)}
+                      className="accent-yellow-500"
+                    />
+                    Nota Interna
+                  </label>
+                )}
+              </div>
               <button
                 type="submit"
                 disabled={isSubmitting || !newComment.trim()}
