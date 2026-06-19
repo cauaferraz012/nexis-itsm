@@ -48,8 +48,10 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   if (!isAuthChecked) {
-    return (
-      <div className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center">
+    if (typeof window === 'undefined') return null;
+    const { createPortal } = require('react-dom');
+    return createPortal(
+      <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
         <h1 className="text-6xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
           NEXIS
         </h1>
@@ -58,7 +60,8 @@ export default function AdminDashboardPage() {
           <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '150ms' }} />
           <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
