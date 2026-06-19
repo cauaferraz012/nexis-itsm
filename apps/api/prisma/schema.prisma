@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("USER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  authoredTickets Ticket[] @relation("TicketAuthor")
+  assignedTickets Ticket[] @relation("TicketAssignee")
+  comments        Comment[]
+  articles        Article[]
+}
+
+model Article {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String   @default("GERAL")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Ticket {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  type        String   @default("INCIDENT") // INCIDENT, REQUEST
+  category    String   @default("OUTROS")
+  status      String   @default("OPEN") // OPEN, IN_PROGRESS, WAITING, RESOLVED
+  priority    String   @default("MEDIUM")
+  attachmentUrl String?
+  
+  // SLA Fields
+  slaDeadline DateTime?
+  slaStatus   String   @default("RUNNING") // RUNNING, PAUSED, MET, BREACHED
+  slaPausedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  authorId    String
+  author      User     @relation("TicketAuthor", fields: [authorId], references: [id])
+  
+  assigneeId  String?
+  assignee    User?    @relation("TicketAssignee", fields: [assigneeId], references: [id])
+
+  comments    Comment[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  text      String
+  attachmentUrl String?
+  createdAt DateTime @default(now())
+  
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
