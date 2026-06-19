@@ -66,10 +66,25 @@ export default function AdminDashboardPage() {
   const COLORS = ['#eab308', '#3b82f6', '#22c55e']; // Yellow, Blue, Green for Status
 
   const [activeTab, setActiveTab] = useState('ALL');
+  const [viewMode, setViewMode] = useState<'TABLE' | 'KANBAN'>('TABLE');
+  const [quickFilter, setQuickFilter] = useState<'ALL' | 'MINE' | 'UNASSIGNED' | 'OVERDUE'>('ALL');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("itsm_user");
+    if (userStr) {
+      setCurrentUserId(JSON.parse(userStr).id);
+    }
+  }, []);
 
   const filteredTickets = tickets.filter(t => {
-    if (activeTab === 'ALL') return true;
-    return t.category === activeTab;
+    if (activeTab !== 'ALL' && t.category !== activeTab) return false;
+    
+    if (quickFilter === 'MINE') return t.assigneeId === currentUserId;
+    if (quickFilter === 'UNASSIGNED') return t.assigneeId === null;
+    if (quickFilter === 'OVERDUE') return t.slaStatus === 'BREACHED' || (t.slaStatus === 'RUNNING' && t.slaDeadline && new Date(t.slaDeadline) < new Date());
+    
+    return true;
   });
 
   const kpiAbertos = tickets.filter(t => t.status === 'OPEN').length;
@@ -252,15 +267,33 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="glass-panel rounded-2xl overflow-hidden border border-white/10 flex flex-col">
-            <div className="p-4 border-b border-white/10 flex items-center gap-2 bg-white/5">
-              <span className="text-lg font-bold">Todos os Chamados</span>
-              <span className="text-sm font-semibold bg-white/10 px-2 py-0.5 rounded-full">{filteredTickets.length}</span>
+          <div className="glass-panel rounded-2xl overflow-hidden border border-white/10 flex flex-col mt-4">
+            <div className="p-4 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/5">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold">Visão de Chamados</span>
+                <span className="text-sm font-semibold bg-white/10 px-2 py-0.5 rounded-full">{filteredTickets.length}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Quick Filters */}
+                <div className="flex bg-black/40 rounded-lg p-1 border border-white/10">
+                  <button onClick={() => setQuickFilter('ALL')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${quickFilter === 'ALL' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white'}`}>Todos</button>
+                  <button onClick={() => setQuickFilter('MINE')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${quickFilter === 'MINE' ? 'bg-primary-500 text-white' : 'text-white/50 hover:text-white'}`}>Meus</button>
+                  <button onClick={() => setQuickFilter('UNASSIGNED')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${quickFilter === 'UNASSIGNED' ? 'bg-yellow-500 text-white' : 'text-white/50 hover:text-white'}`}>Sem Dono</button>
+                  <button onClick={() => setQuickFilter('OVERDUE')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${quickFilter === 'OVERDUE' ? 'bg-red-500 text-white' : 'text-white/50 hover:text-white'}`}>Atrasados</button>
+                </div>
+                {/* View Toggle */}
+                <div className="flex bg-black/40 rounded-lg p-1 border border-white/10">
+                  <button onClick={() => setViewMode('TABLE')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'TABLE' ? 'bg-primary-500 text-white shadow-lg' : 'text-white/50 hover:text-white'}`}>TABELA</button>
+                  <button onClick={() => setViewMode('KANBAN')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'KANBAN' ? 'bg-primary-500 text-white shadow-lg' : 'text-white/50 hover:text-white'}`}>KANBAN</button>
+                </div>
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5 text-xs text-foreground/70 uppercase tracking-wider">
+            
+            {viewMode === 'TABLE' ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/5 text-xs text-foreground/70 uppercase tracking-wider">
                     <th className="p-3 font-medium">Status / SLA</th>
                     <th className="p-3 font-medium">Chamado</th>
                     <th className="p-3 font-medium">Resp.</th>
@@ -326,11 +359,100 @@ export default function AdminDashboardPage() {
                     ))
                   )}
                 </tbody>
-              </table>
-            </div>
+                </table>
+              </div>
+            ) : (
+              <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 bg-black/20">
+                {/* Coluna ABERTO */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-foreground/50"></span>
+                    <h3 className="font-bold text-foreground/80 uppercase tracking-wider text-sm">Abertos</h3>
+                    <span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-full">{filteredTickets.filter(t => t.status === 'OPEN').length}</span>
+                  </div>
+                  {filteredTickets.filter(t => t.status === 'OPEN').map(ticket => (
+                    <KanbanCard key={ticket.id} ticket={ticket} onClick={() => router.push(`/tickets/${ticket.id}`)} />
+                  ))}
+                </div>
+
+                {/* Coluna EM ANDAMENTO */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <h3 className="font-bold text-blue-400 uppercase tracking-wider text-sm">Em Andamento</h3>
+                    <span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-full">{filteredTickets.filter(t => t.status === 'IN_PROGRESS').length}</span>
+                  </div>
+                  {filteredTickets.filter(t => t.status === 'IN_PROGRESS').map(ticket => (
+                    <KanbanCard key={ticket.id} ticket={ticket} onClick={() => router.push(`/tickets/${ticket.id}`)} />
+                  ))}
+                </div>
+
+                {/* Coluna AGUARDANDO */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                    <h3 className="font-bold text-yellow-400 uppercase tracking-wider text-sm">Aguardando</h3>
+                    <span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-full">{filteredTickets.filter(t => t.status === 'WAITING').length}</span>
+                  </div>
+                  {filteredTickets.filter(t => t.status === 'WAITING').map(ticket => (
+                    <KanbanCard key={ticket.id} ticket={ticket} onClick={() => router.push(`/tickets/${ticket.id}`)} />
+                  ))}
+                </div>
+
+                {/* Coluna RESOLVIDO */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <h3 className="font-bold text-green-400 uppercase tracking-wider text-sm">Resolvidos</h3>
+                    <span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-full">{filteredTickets.filter(t => t.status === 'RESOLVED').length}</span>
+                  </div>
+                  {filteredTickets.filter(t => t.status === 'RESOLVED').map(ticket => (
+                    <KanbanCard key={ticket.id} ticket={ticket} onClick={() => router.push(`/tickets/${ticket.id}`)} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function KanbanCard({ ticket, onClick }: { ticket: any, onClick: () => void }) {
+  return (
+    <div 
+      onClick={onClick}
+      className="glass-panel p-4 rounded-xl border border-white/10 cursor-pointer hover:border-primary-500/50 hover:-translate-y-1 transition-all flex flex-col gap-3 bg-white/5"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[10px] text-foreground/50 font-mono">#{ticket.id.split('-')[0]}</span>
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${ticket.priority === 'URGENT' ? 'bg-red-500/20 text-red-400' : ticket.priority === 'HIGH' ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-foreground/70'}`}>
+          {ticket.priority}
+        </span>
+      </div>
+      <h4 className="font-medium text-sm leading-tight group-hover:text-primary-400 transition-colors line-clamp-2">{ticket.title}</h4>
+      
+      <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
+        <div className="flex items-center gap-1.5">
+          <UserIcon className="w-3 h-3 text-foreground/40" />
+          <span className="text-[10px] text-foreground/60 truncate max-w-[60px]" title={ticket.author?.name}>{ticket.author?.name.split(' ')[0]}</span>
+        </div>
+        {ticket.assignee ? (
+          <span className="text-[10px] bg-primary-500/10 text-primary-400 px-2 py-0.5 rounded font-medium truncate max-w-[80px]" title={`Resp: ${ticket.assignee.name}`}>
+            {ticket.assignee.name.split(' ')[0]}
+          </span>
+        ) : (
+          <span className="text-[10px] text-foreground/40 italic">Não Atribuído</span>
+        )}
+      </div>
+
+      {ticket.slaStatus === 'RUNNING' && ticket.slaDeadline && (
+        <div className={`text-[10px] px-2 py-1 rounded font-bold w-full text-center mt-1 ${new Date() > new Date(ticket.slaDeadline) ? 'bg-red-500/20 text-red-400' : 'bg-primary-500/10 text-primary-400'}`}>
+          SLA: {new Date() > new Date(ticket.slaDeadline) ? 'Estourado' : 'No Prazo'}
+        </div>
+      )}
+      {ticket.slaStatus === 'BREACHED' && <div className="text-[10px] px-2 py-1 rounded font-bold w-full text-center mt-1 bg-red-500/20 text-red-400">SLA Estourado</div>}
     </div>
   );
 }

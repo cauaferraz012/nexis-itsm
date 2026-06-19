@@ -25,6 +25,7 @@ export function NewTicketModal({ isOpen, onClose, onSuccess }: NewTicketModalPro
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [step, setStep] = useState(1);
 
   const INCIDENT_CATEGORIES = [
     "Sistemas/Software",
@@ -128,6 +129,7 @@ export function NewTicketModal({ isOpen, onClose, onSuccess }: NewTicketModalPro
       setCategory(INCIDENT_CATEGORIES[0]);
       setFile(null);
       setAuthorId("");
+      setStep(1);
       
       // Se for Admin, não redireciona para a tela do chamado para não perder o dashboard (ou redireciona, opcional)
       router.push(`/tickets/${data.id}`);
@@ -157,13 +159,17 @@ export function NewTicketModal({ isOpen, onClose, onSuccess }: NewTicketModalPro
             className="relative w-full max-w-lg glass-panel rounded-2xl p-6 shadow-2xl border border-white/10 bg-[#09090b]/90 max-h-[90vh] overflow-y-auto"
           >
             <button
-              onClick={onClose}
+              onClick={() => { onClose(); setStep(1); }}
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-foreground/50 hover:text-foreground"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-2xl font-bold mb-6">Novo Chamado</h2>
+            <h2 className="text-2xl font-bold mb-2">Novo Chamado</h2>
+            <div className="flex gap-2 mb-6">
+              <div className={`h-1.5 flex-1 rounded-full ${step >= 1 ? 'bg-primary-500' : 'bg-white/10'}`} />
+              <div className={`h-1.5 flex-1 rounded-full ${step >= 2 ? 'bg-primary-500' : 'bg-white/10'}`} />
+            </div>
 
             {error && (
               <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
@@ -172,135 +178,163 @@ export function NewTicketModal({ isOpen, onClose, onSuccess }: NewTicketModalPro
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground/70 mb-2">
-                  O que você precisa?
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  <button
-                    type="button"
-                    onClick={() => setType("INCIDENT")}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-sm font-medium transition-colors ${type === 'INCIDENT' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'bg-white/5 border-white/10 text-foreground/70 hover:bg-white/10'}`}
-                  >
-                    🔴 Reportar um Problema
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setType("REQUEST")}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-sm font-medium transition-colors ${type === 'REQUEST' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'bg-white/5 border-white/10 text-foreground/70 hover:bg-white/10'}`}
-                  >
-                    🔵 Fazer uma Solicitação
-                  </button>
-                </div>
-              </div>
+              {step === 1 && (
+                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground/70 mb-3">
+                      1. Qual é o tipo da sua solicitação?
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setType("INCIDENT")}
+                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border text-sm font-medium transition-all ${type === 'INCIDENT' ? 'bg-red-500/20 border-red-500/50 text-red-400 scale-[1.02]' : 'bg-white/5 border-white/10 text-foreground/70 hover:bg-white/10'}`}
+                      >
+                        <span className="text-2xl">🔴</span>
+                        Reportar um Problema
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setType("REQUEST")}
+                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border text-sm font-medium transition-all ${type === 'REQUEST' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 scale-[1.02]' : 'bg-white/5 border-white/10 text-foreground/70 hover:bg-white/10'}`}
+                      >
+                        <span className="text-2xl">🔵</span>
+                        Fazer uma Solicitação
+                      </button>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground/70 mb-1">
-                    Tópico / Categoria
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-[#1a1a20] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow appearance-none"
-                  >
-                    {(type === 'INCIDENT' ? INCIDENT_CATEGORIES : REQUEST_CATEGORIES).map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground/70 mb-1">
-                    Título Breve
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow"
-                    placeholder={type === 'INCIDENT' ? "Ex: Monitor secundário piscando" : "Ex: Solicitação de Mouse Novo"}
-                  />
-                </div>
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground/70 mb-3">
+                      2. Qual é a categoria?
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(type === 'INCIDENT' ? INCIDENT_CATEGORIES : REQUEST_CATEGORIES).map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setCategory(cat)}
+                          className={`p-3 rounded-xl border text-xs font-medium transition-colors text-left ${category === cat ? 'bg-primary-500/20 border-primary-500/50 text-primary-400' : 'bg-[#1a1a20] border-white/10 hover:border-white/20'}`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground/70 mb-1">
-                  Descrição Detalhada
-                </label>
-                <textarea
-                  required
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow resize-none"
-                  placeholder="Descreva o que está acontecendo..."
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground/70 mb-1">
-                  Anexo (Opcional)
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-500/20 file:text-primary-400 hover:file:bg-primary-500/30"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground/70 mb-1">
-                  Prioridade
-                </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full bg-[#1a1a20] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow appearance-none"
-                >
-                  <option value="LOW">Baixa</option>
-                  <option value="MEDIUM">Média</option>
-                  <option value="HIGH">Alta</option>
-                  <option value="URGENT">Urgente</option>
-                </select>
-              </div>
-
-              {isAdmin && users.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground/70 mb-1">
-                    Abrir em nome de (Opcional)
-                  </label>
-                  <select
-                    value={authorId}
-                    onChange={(e) => setAuthorId(e.target.value)}
-                    className="w-full bg-[#1a1a20] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow appearance-none"
-                  >
-                    <option value="">Selecione um usuário...</option>
-                    {users.map(u => (
-                      <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-                    ))}
-                  </select>
-                </div>
+                  <div className="pt-4 flex justify-end gap-3 border-t border-white/10 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => { onClose(); setStep(1); }}
+                      className="px-6 py-3 rounded-xl font-medium hover:bg-white/5 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStep(2)}
+                      className="px-6 py-3 rounded-xl font-medium bg-primary-600 hover:bg-primary-500 text-white transition-colors"
+                    >
+                      Avançar
+                    </button>
+                  </div>
+                </motion.div>
               )}
 
-              <div className="pt-4 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-6 py-3 rounded-xl font-medium hover:bg-white/5 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-3 rounded-xl font-medium bg-primary-600 hover:bg-primary-500 text-white transition-colors flex items-center gap-2 disabled:opacity-50"
-                >
-                  {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Abrir Chamado
-                </button>
-              </div>
+              {step === 2 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground/70 mb-1">
+                      Título Breve
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow"
+                      placeholder={type === 'INCIDENT' ? "Ex: Monitor secundário piscando" : "Ex: Solicitação de Mouse Novo"}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground/70 mb-1">
+                      Descrição Detalhada
+                    </label>
+                    <textarea
+                      required
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={4}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow resize-none"
+                      placeholder="Descreva o que está acontecendo detalhadamente..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground/70 mb-1">
+                      Anexo (Opcional)
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-500/20 file:text-primary-400 hover:file:bg-primary-500/30"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground/70 mb-1">
+                      Prioridade
+                    </label>
+                    <select
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                      className="w-full bg-[#1a1a20] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow appearance-none"
+                    >
+                      <option value="LOW">Baixa</option>
+                      <option value="MEDIUM">Média</option>
+                      <option value="HIGH">Alta</option>
+                      <option value="URGENT">Urgente</option>
+                    </select>
+                  </div>
+
+                  {isAdmin && users.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-foreground/70 mb-1">
+                        Abrir em nome de (Opcional)
+                      </label>
+                      <select
+                        value={authorId}
+                        onChange={(e) => setAuthorId(e.target.value)}
+                        className="w-full bg-[#1a1a20] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-shadow appearance-none"
+                      >
+                        <option value="">Selecione um usuário...</option>
+                        {users.map(u => (
+                          <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="pt-4 flex justify-between gap-3 border-t border-white/10 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className="px-6 py-3 rounded-xl font-medium hover:bg-white/5 transition-colors"
+                    >
+                      Voltar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-6 py-3 rounded-xl font-medium bg-primary-600 hover:bg-primary-500 text-white transition-colors flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Abrir Chamado
+                    </button>
+                  </div>
+                </motion.div>
+              )}
             </form>
           </motion.div>
         </div>
