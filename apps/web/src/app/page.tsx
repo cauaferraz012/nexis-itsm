@@ -13,6 +13,8 @@ export default function Home() {
 
   const router = useRouter();
 
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
   const fetchTickets = async () => {
     const token = localStorage.getItem("itsm_token");
     if (!token) {
@@ -20,8 +22,10 @@ export default function Home() {
       return;
     }
 
+    setIsAuthChecked(true);
+
     try {
-      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.status === 401) {
@@ -43,6 +47,10 @@ export default function Home() {
   useEffect(() => {
     fetchTickets();
   }, [router]);
+
+  if (!isAuthChecked) {
+    return <div className="flex h-full items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>;
+  }
 
   const handleTicketCreated = () => {
     fetchTickets(); // Refresh the list

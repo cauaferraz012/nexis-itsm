@@ -13,15 +13,19 @@ export default function AdminDashboardPage() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("itsm_token");
       if (!token) return router.push("/login");
 
+      setIsAuthChecked(true);
+
       try {
         const [statsRes, ticketsRes] = await Promise.all([
-          fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/stats", { headers: { "Authorization": `Bearer ${token}` } }),
-          fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/all", { headers: { "Authorization": `Bearer ${token}` } })
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/stats`, { headers: { "Authorization": `Bearer ${token}` } }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/all`, { headers: { "Authorization": `Bearer ${token}` } })
         ]);
         
         if (ticketsRes.status === 401 || ticketsRes.status === 403) {
@@ -42,6 +46,10 @@ export default function AdminDashboardPage() {
 
     fetchData();
   }, [router]);
+
+  if (!isAuthChecked) {
+    return <div className="flex h-full items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>;
+  }
 
   const COLORS = ['#eab308', '#3b82f6', '#22c55e']; // Yellow, Blue, Green for Status
 
