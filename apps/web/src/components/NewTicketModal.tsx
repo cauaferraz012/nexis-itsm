@@ -105,7 +105,16 @@ export function NewTicketModal({ isOpen, onClose, onSuccess }: NewTicketModalPro
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Erro ao criar chamado.");
+      if (!res.ok) {
+        let errorMsg = "Erro desconhecido";
+        try {
+          const errorData = await res.json();
+          errorMsg = JSON.stringify(errorData);
+        } catch(e) {
+          errorMsg = await res.text();
+        }
+        throw new Error(`Falha (Status ${res.status}): ${errorMsg}`);
+      }
       
       const data = await res.json();
 
