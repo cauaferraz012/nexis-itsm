@@ -145,7 +145,7 @@ export function NewTicketModal({ isOpen, onClose, onSuccess }: NewTicketModalPro
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-lg glass-panel rounded-2xl p-6 shadow-2xl border border-white/10 bg-[#09090b]/90"
+            className="relative w-full max-w-lg glass-panel rounded-2xl p-6 shadow-2xl border border-white/10 bg-[#09090b]/90 max-h-[90vh] overflow-y-auto"
           >
             <button
               onClick={onClose}
