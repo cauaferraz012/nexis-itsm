@@ -17,6 +17,9 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Adiciona um tempo mínimo de 1.5s para a tela de carregamento aparecer bonitinha
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       const token = localStorage.getItem("itsm_token");
       if (!token) return router.push("/login");
 
