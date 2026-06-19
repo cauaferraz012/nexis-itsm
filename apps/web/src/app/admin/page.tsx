@@ -20,8 +20,8 @@ export default function AdminDashboardPage() {
 
       try {
         const [statsRes, ticketsRes] = await Promise.all([
-          fetch("http://localhost:3001/tickets/admin/stats", { headers: { "Authorization": `Bearer ${token}` } }),
-          fetch("http://localhost:3001/tickets/admin/all", { headers: { "Authorization": `Bearer ${token}` } })
+          fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/stats", { headers: { "Authorization": `Bearer ${token}` } }),
+          fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/all", { headers: { "Authorization": `Bearer ${token}` } })
         ]);
         
         if (ticketsRes.status === 401 || ticketsRes.status === 403) {
@@ -76,7 +76,7 @@ export default function AdminDashboardPage() {
             if (confirm("🚨 TEM CERTEZA? Isso apagará TODOS os chamados e comentários do banco de dados irreversivelmente!")) {
               try {
                 const token = localStorage.getItem("itsm_token");
-                const res = await fetch("http://localhost:3001/tickets/admin/clear-all", {
+                const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/clear-all", {
                   method: 'DELETE',
                   headers: { "Authorization": `Bearer ${token}` }
                 });

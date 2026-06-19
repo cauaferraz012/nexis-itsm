@@ -20,7 +20,7 @@ export default function TicketDetailsPage() {
     if (!token) return router.push("/login");
 
     try {
-      const res = await fetch(`http://localhost:3001/tickets/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/${id}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -62,7 +62,7 @@ export default function TicketDetailsPage() {
         formData.append("file", file);
       }
 
-      const res = await fetch(`http://localhost:3001/tickets/${id}/comments`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/${id}/comments`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -88,7 +88,7 @@ export default function TicketDetailsPage() {
   const handleStatusChange = async (newStatus: string) => {
     const token = localStorage.getItem("itsm_token");
     try {
-      const res = await fetch(`http://localhost:3001/tickets/${id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/${id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -105,7 +105,7 @@ export default function TicketDetailsPage() {
   const handleAssignToMe = async () => {
     const token = localStorage.getItem("itsm_token");
     try {
-      const res = await fetch(`http://localhost:3001/tickets/${id}/assign`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/${id}/assign`, {
         method: "PATCH",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -208,7 +208,7 @@ export default function TicketDetailsPage() {
             {ticket.attachmentUrl && (
               <div className="mt-4 border-t border-white/10 pt-4">
                 <p className="text-sm text-foreground/50 mb-2">Anexo:</p>
-                <a href={`http://localhost:3001${ticket.attachmentUrl}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-primary-400 hover:text-primary-300">
+                <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${ticket.attachmentUrl}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-primary-400 hover:text-primary-300">
                   📎 Ver Anexo
                 </a>
               </div>
@@ -264,7 +264,7 @@ export default function TicketDetailsPage() {
                     <p className="text-sm text-foreground/80 whitespace-pre-wrap">{comment.text}</p>
                     {comment.attachmentUrl && (
                       <div className="mt-3">
-                        <a href={`http://localhost:3001${comment.attachmentUrl}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs text-primary-400 hover:text-primary-300 bg-primary-500/10 px-3 py-1.5 rounded-full">
+                        <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${comment.attachmentUrl}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs text-primary-400 hover:text-primary-300 bg-primary-500/10 px-3 py-1.5 rounded-full">
                           📎 Anexo
                         </a>
                       </div>

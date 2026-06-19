@@ -24,7 +24,7 @@ export default function ArticleDetailsPage() {
     const fetchArticle = async () => {
       const token = localStorage.getItem("itsm_token");
       try {
-        const res = await fetch(`http://localhost:3001/kb/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/kb/${id}`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (res.ok) setArticle(await res.json());
@@ -43,7 +43,7 @@ export default function ArticleDetailsPage() {
     
     const token = localStorage.getItem("itsm_token");
     try {
-      const res = await fetch(`http://localhost:3001/kb/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/kb/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });

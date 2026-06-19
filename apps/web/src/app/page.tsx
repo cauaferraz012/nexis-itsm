@@ -21,7 +21,7 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/tickets", {
+      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.status === 401) {

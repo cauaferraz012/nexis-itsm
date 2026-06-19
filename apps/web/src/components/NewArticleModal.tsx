@@ -25,7 +25,7 @@ export function NewArticleModal({ isOpen, onClose, onSuccess }: NewArticleModalP
     try {
       const token = localStorage.getItem("itsm_token");
 
-      const res = await fetch("http://localhost:3001/kb", {
+      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/kb", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

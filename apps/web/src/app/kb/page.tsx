@@ -19,7 +19,7 @@ export default function KnowledgeBasePage() {
     setIsLoading(true);
     const token = localStorage.getItem("itsm_token");
     try {
-      const url = new URL("http://localhost:3001/kb");
+      const url = new URL("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/kb");
       if (searchQuery) url.searchParams.append("q", searchQuery);
 
       const res = await fetch(url.toString(), {
