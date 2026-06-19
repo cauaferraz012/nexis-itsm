@@ -56,10 +56,8 @@ export default function AdminDashboardPage() {
         <h1 className="text-6xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
           NEXIS
         </h1>
-        <div className="mt-6 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+        <div className="mt-8">
+          <div className="w-8 h-8 rounded-full border-[3px] border-primary-500/20 border-r-primary-400 animate-spin" />
         </div>
       </div>
     );
