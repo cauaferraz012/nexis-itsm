@@ -16,6 +16,18 @@ export default function AdminDashboardPage() {
 
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
+  const [activeTab, setActiveTab] = useState('ALL');
+  const [viewMode, setViewMode] = useState<'TABLE' | 'KANBAN'>('TABLE');
+  const [quickFilter, setQuickFilter] = useState<'ALL' | 'MINE' | 'UNASSIGNED' | 'OVERDUE'>('ALL');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("itsm_user");
+    if (userStr) {
+      setCurrentUserId(JSON.parse(userStr).id);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("itsm_token");
@@ -65,18 +77,6 @@ export default function AdminDashboardPage() {
   }
 
   const COLORS = ['#eab308', '#3b82f6', '#22c55e']; // Yellow, Blue, Green for Status
-
-  const [activeTab, setActiveTab] = useState('ALL');
-  const [viewMode, setViewMode] = useState<'TABLE' | 'KANBAN'>('TABLE');
-  const [quickFilter, setQuickFilter] = useState<'ALL' | 'MINE' | 'UNASSIGNED' | 'OVERDUE'>('ALL');
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const userStr = localStorage.getItem("itsm_user");
-    if (userStr) {
-      setCurrentUserId(JSON.parse(userStr).id);
-    }
-  }, []);
 
   const filteredTickets = tickets.filter(t => {
     if (activeTab !== 'ALL' && t.category !== activeTab) return false;
