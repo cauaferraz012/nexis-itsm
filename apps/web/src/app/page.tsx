@@ -16,14 +16,14 @@ export default function Home() {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   const fetchTickets = async () => {
-    // Adiciona um tempo mínimo de 5s para a tela de carregamento aparecer bonitinha
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
     const token = localStorage.getItem("itsm_token");
     if (!token) {
       router.push("/login");
       return;
     }
+
+    // Adiciona um tempo mínimo de 5s para a tela de carregamento aparecer bonitinha
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     setIsAuthChecked(true);
 
