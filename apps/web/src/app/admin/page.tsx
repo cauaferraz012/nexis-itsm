@@ -96,7 +96,7 @@ export default function AdminDashboardPage() {
             if (confirm("🚨 TEM CERTEZA? Isso apagará TODOS os chamados e comentários do banco de dados irreversivelmente!")) {
               try {
                 const token = localStorage.getItem("itsm_token");
-                const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/clear-all", {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets/admin/clear-all`, {
                   method: 'DELETE',
                   headers: { "Authorization": `Bearer ${token}` }
                 });

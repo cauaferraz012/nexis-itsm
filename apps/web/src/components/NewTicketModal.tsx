@@ -67,7 +67,7 @@ export function NewTicketModal({ isOpen, onClose, onSuccess }: NewTicketModalPro
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("itsm_token");
-      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/users", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/users`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) setUsers(await res.json());
@@ -97,7 +97,7 @@ export function NewTicketModal({ isOpen, onClose, onSuccess }: NewTicketModalPro
         formData.append("file", file);
       }
 
-      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tickets`, {
         method: "POST",
         headers: { 
           "Authorization": `Bearer ${token}`
