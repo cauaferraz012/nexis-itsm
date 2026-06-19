@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createPortal } from "react-dom";
 import { Shield, Clock, CheckCircle2, User as UserIcon, Activity, AlertTriangle, PauseCircle, Inbox, CheckSquare, TrendingUp, Monitor, Code, Wifi, Key, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -15,10 +14,8 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [isAuthChecked, setIsAuthChecked] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
     const fetchData = async () => {
       // Adiciona um tempo mínimo de 1.5s para a tela de carregamento aparecer bonitinha
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -54,8 +51,7 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   if (!isAuthChecked) {
-    if (!isMounted) return null;
-    return createPortal(
+    return (
       <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
         <h1 className="text-6xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
           NEXIS
@@ -65,8 +61,7 @@ export default function AdminDashboardPage() {
           <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '150ms' }} />
           <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
-      </div>,
-      document.body
+      </div>
     );
   }
 

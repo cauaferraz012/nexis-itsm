@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createPortal } from "react-dom";
 import { GlassCard } from "@/components/GlassCard";
 import { Search, Plus, FileText, CheckCircle2, Clock } from "lucide-react";
 import { NewTicketModal } from "@/components/NewTicketModal";
@@ -15,7 +14,6 @@ export default function Home() {
   const router = useRouter();
 
   const [isAuthChecked, setIsAuthChecked] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   const fetchTickets = async () => {
     // Adiciona um tempo mínimo de 1.5s para a tela de carregamento aparecer bonitinha
@@ -50,13 +48,11 @@ export default function Home() {
   };
 
   useEffect(() => {
-    setIsMounted(true);
     fetchTickets();
   }, [router]);
 
   if (!isAuthChecked) {
-    if (!isMounted) return null;
-    return createPortal(
+    return (
       <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
         <h1 className="text-6xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
           NEXIS
@@ -66,8 +62,7 @@ export default function Home() {
           <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '150ms' }} />
           <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
-      </div>,
-      document.body
+      </div>
     );
   }
 

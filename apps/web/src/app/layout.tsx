@@ -31,7 +31,7 @@ export default function RootLayout({
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary-400/20 blur-[120px] pointer-events-none" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-400/20 blur-[120px] pointer-events-none" />
           
-          <div className="relative z-10 max-w-6xl mx-auto w-full">
+          <div className="relative max-w-6xl mx-auto w-full">
             {children}
           </div>
         </main>
