@@ -204,13 +204,13 @@ export default function AdminDashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={stats?.byStatus}
+                      data={stats?.byStatus || []}
                       innerRadius={60}
                       outerRadius={80}
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      {stats?.byStatus.map((entry: any, index: number) => (
+                      {(stats?.byStatus || []).map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -227,7 +227,7 @@ export default function AdminDashboardPage() {
               <h3 className="text-foreground/60 font-medium mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4"/> Volume por Prioridade</h3>
               <div className="h-48 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats?.byPriority}>
+                  <BarChart data={stats?.byPriority || []}>
                     <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" tick={{fill: 'rgba(255,255,255,0.5)'}} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
