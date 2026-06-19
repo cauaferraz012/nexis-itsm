@@ -110,12 +110,13 @@ export class TicketsController {
   async addComment(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() body: { text: string },
+    @Body() body: { text: string; isInternal?: string | boolean },
     @UploadedFile() file?: Express.Multer.File
   ) {
     const userId = req.user.userId;
     const attachmentUrl = file ? `/uploads/${file.filename}` : undefined;
-    return this.ticketsService.addComment(id, body.text, userId, attachmentUrl);
+    const isInternal = body.isInternal === 'true' || body.isInternal === true;
+    return this.ticketsService.addComment(id, body.text, userId, attachmentUrl, isInternal);
   }
 
   @Patch(':id/status')

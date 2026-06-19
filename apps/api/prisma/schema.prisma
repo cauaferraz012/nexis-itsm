@@ -22,6 +22,7 @@ model User {
   assignedTickets Ticket[] @relation("TicketAssignee")
   comments        Comment[]
   articles        Article[]
+  auditLogs       AuditLog[]
 }
 
 model Article {
@@ -61,11 +62,13 @@ model Ticket {
   assignee    User?    @relation("TicketAssignee", fields: [assigneeId], references: [id])
 
   comments    Comment[]
+  auditLogs   AuditLog[]
 }
 
 model Comment {
   id        String   @id @default(uuid())
   text      String
+  isInternal Boolean @default(false)
   attachmentUrl String?
   createdAt DateTime @default(now())
   
@@ -74,4 +77,17 @@ model Comment {
   
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String   // ex: "STATUS_CHANGED", "ASSIGNED", "PRIORITY_CHANGED"
+  details   String?  // JSON string or description
+  createdAt DateTime @default(now())
+  
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }

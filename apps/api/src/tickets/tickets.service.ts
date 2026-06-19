@@ -44,6 +44,15 @@ export class TicketsService {
       }
     });
 
+    await this.prisma.auditLog.create({
+      data: {
+        action: 'CREATED',
+        details: 'Chamado aberto',
+        ticketId: ticket.id,
+        userId: data.authorId,
+      }
+    });
+
     this.emailService.sendTicketCreated(ticket.id, ticket.author.email, ticket.title);
 
     return ticket;
@@ -133,6 +142,10 @@ export class TicketsService {
           include: { author: { select: { name: true, role: true } } },
           orderBy: { createdAt: 'asc' },
         },
+        auditLogs: {
+          include: { user: { select: { name: true, role: true } } },
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
   }
@@ -143,13 +156,24 @@ export class TicketsService {
     if (ticket.status === 'RESOLVED') throw new NotFoundException('Chamado já resolvido');
     
     // Assign and change status to IN_PROGRESS automatically
-    return this.prisma.ticket.update({
+    const updated = await this.prisma.ticket.update({
       where: { id: ticketId },
       data: { assigneeId: adminId, status: 'IN_PROGRESS' },
     });
+
+    await this.prisma.auditLog.create({
+      data: {
+        action: 'ASSIGNED',
+        details: 'Chamado atribuído a um técnico',
+        ticketId: ticketId,
+        userId: adminId,
+      }
+    });
+
+    return updated;
   }
 
-  async addComment(ticketId: string, text: string, authorId: string, attachmentUrl?: string) {
+  async addComment(ticketId: string, text: string, authorId: string, attachmentUrl?: string, isInternal: boolean = false) {
     const ticket = await this.prisma.ticket.findUnique({
       where: { id: ticketId },
       include: { author: { select: { email: true, id: true } } }
@@ -169,6 +193,7 @@ export class TicketsService {
         ticketId,
         authorId,
         attachmentUrl,
+        isInternal,
       },
       include: {
         author: { select: { name: true, role: true } },
@@ -180,7 +205,7 @@ export class TicketsService {
       await this.updateStatus(ticketId, 'IN_PROGRESS', authorId);
     }
 
-    if (comment.author.role === 'ADMIN') {
+    if (!isInternal && comment.author.role === 'ADMIN') {
       this.emailService.sendEmail(
         ticket.author.email,
         `Nova mensagem no chamado #${ticket.id.split('-')[0]}`,
@@ -229,6 +254,15 @@ export class TicketsService {
       where: { id: ticketId },
       data: updateData,
       include: { author: { select: { email: true } } }
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        action: 'STATUS_CHANGED',
+        details: status,
+        ticketId: ticketId,
+        userId: userId,
+      }
     });
 
     this.emailService.sendTicketUpdated(ticket.id, ticket.author.email, ticket.title, status);
