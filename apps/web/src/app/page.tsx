@@ -49,7 +49,18 @@ export default function Home() {
   }, [router]);
 
   if (!isAuthChecked) {
-    return <div className="flex h-full items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>;
+    return (
+      <div className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center">
+        <h1 className="text-6xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
+          NEXIS
+        </h1>
+        <div className="mt-6 flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+      </div>
+    );
   }
 
   const handleTicketCreated = () => {
