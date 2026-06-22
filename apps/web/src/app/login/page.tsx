@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [adminKey, setAdminKey] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,7 +47,27 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     const endpoint = isLogin ? "/auth/login" : "/auth/register";
-    const body = isLogin ? { email, password } : { name, email, password };
+    
+    // Front-end email validation
+    if (!isLogin) {
+      const publicDomains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'yahoo.com.br', 'live.com', 'icloud.com'];
+      const emailDomain = email.split('@')[1]?.toLowerCase();
+      if (publicDomains.includes(emailDomain)) {
+        setError("Apenas e-mails corporativos são permitidos.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    const body = isLogin 
+      ? { email, password } 
+      : { 
+          name, 
+          email, 
+          password, 
+          role: selectedPortal === 'ADMIN' ? 'ADMIN' : 'USER',
+          adminKey: selectedPortal === 'ADMIN' ? adminKey : undefined
+        };
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${endpoint}`, {
@@ -126,7 +147,7 @@ export default function LoginPage() {
               <button
                 onClick={() => {
                   setSelectedPortal('ADMIN');
-                  setIsLogin(true); // IT Portal sempre cai no Login (sem criar conta)
+                  setIsLogin(true);
                   setError("");
                 }}
                 className="group relative glass-panel rounded-3xl p-8 border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] hover:-translate-y-2 text-left"
@@ -243,6 +264,21 @@ export default function LoginPage() {
                 />
               </div>
 
+              {!isLogin && selectedPortal === 'ADMIN' && (
+                <div>
+                  <label className="block text-sm font-medium text-purple-400 mb-1">Chave de Segurança TI</label>
+                  <input
+                    type="password"
+                    required
+                    value={adminKey}
+                    onChange={(e) => setAdminKey(e.target.value)}
+                    className="w-full bg-purple-500/5 border border-purple-500/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-shadow text-purple-100"
+                    placeholder="Chave Mestra"
+                  />
+                  <p className="text-xs text-purple-400/60 mt-1">Necessário para criar conta de Administrador.</p>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -255,22 +291,20 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Apenas o Portal de Usuário permite criar conta livremente */}
-            {selectedPortal === 'USER' && (
-              <div className="mt-6 text-center text-sm text-foreground/60">
-                {isLogin ? "Ainda não tem uma conta? " : "Já possui uma conta? "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setError("");
-                  }}
-                  className="text-primary-400 hover:text-primary-300 font-medium transition-colors"
-                >
-                  {isLogin ? "Criar agora" : "Fazer login"}
-                </button>
-              </div>
-            )}
+            {/* Ambos os portais permitem criar conta */}
+            <div className="mt-6 text-center text-sm text-foreground/60">
+              {isLogin ? "Ainda não tem uma conta? " : "Já possui uma conta? "}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError("");
+                }}
+                className={`font-medium transition-colors ${selectedPortal === 'ADMIN' ? 'text-purple-400 hover:text-purple-300' : 'text-primary-400 hover:text-primary-300'}`}
+              >
+                {isLogin ? "Criar agora" : "Fazer login"}
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -11,12 +11,29 @@ export class AuthService {
   ) {}
 
   async register(data: any) {
+    // Bloqueio de e-mails públicos (exigir corporativo)
+    const publicDomains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'yahoo.com.br', 'live.com', 'icloud.com'];
+    const emailDomain = data.email.split('@')[1]?.toLowerCase();
+    
+    if (publicDomains.includes(emailDomain)) {
+      throw new UnauthorizedException('Apenas e-mails corporativos são permitidos.');
+    }
+
     const existingUser = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
 
     if (existingUser) {
       throw new ConflictException('Usuário já existe.');
+    }
+
+    // Lógica para criação de Admin
+    let role = 'USER';
+    if (data.role === 'ADMIN') {
+      if (data.adminKey !== 'NEXIS-TI-2026') {
+        throw new UnauthorizedException('Chave de Segurança de TI inválida.');
+      }
+      role = 'ADMIN';
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -26,6 +43,7 @@ export class AuthService {
         name: data.name,
         email: data.email,
         password: hashedPassword,
+        role: role,
       },
     });
 
