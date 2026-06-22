@@ -43,10 +43,17 @@ export default function TicketsPage() {
   }, [router]);
 
   const [activeTab, setActiveTab] = useState('ALL');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
 
   const filteredTickets = tickets.filter(t => {
-    if (activeTab === 'ALL') return true;
-    return t.status === activeTab;
+    if (activeTab !== 'ALL' && t.status !== activeTab) return false;
+    if (categoryFilter !== 'ALL' && t.category !== categoryFilter) return false;
+    return true;
+  }).sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
   });
 
   return (
@@ -74,6 +81,34 @@ export default function TicketsPage() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Filtro de Categoria (Pílulas) */}
+          <div className="flex overflow-x-auto gap-2 hide-scrollbar w-full sm:w-auto">
+            {['ALL', 'HARDWARE', 'SOFTWARE', 'NETWORK', 'ACESSOS', 'OUTROS'].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                  categoryFilter === cat ? 'bg-primary-500 text-white' : 'bg-white/5 border border-white/10 text-foreground/60 hover:text-foreground hover:border-white/20'
+                }`}
+              >
+                {cat === 'ALL' ? 'Todas as Categorias' : cat === 'NETWORK' ? 'Rede' : cat === 'SOFTWARE' ? 'Software' : cat === 'HARDWARE' ? 'Hardware' : cat === 'ACESSOS' ? 'Acessos' : 'Outros'}
+              </button>
+            ))}
+          </div>
+          
+          {/* Ordenação */}
+          <button 
+            onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+            className="px-3 py-1.5 text-xs font-bold rounded-lg border border-white/10 hover:bg-white/5 transition-colors flex items-center gap-2 whitespace-nowrap"
+          >
+            <Clock className="w-3 h-3" />
+            {sortOrder === 'desc' ? 'Mais Recentes' : 'Mais Antigos'}
+          </button>
         </div>
       </div>
 
