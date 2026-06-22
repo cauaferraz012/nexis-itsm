@@ -15,12 +15,18 @@ export default function Home() {
   const router = useRouter();
 
   const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [userRole, setUserRole] = useState<'ADMIN' | 'USER'>('USER');
 
   const fetchTickets = async () => {
     const token = localStorage.getItem("itsm_token");
+    const userStr = localStorage.getItem("itsm_user");
     if (!token) {
       router.push("/login");
       return;
+    }
+    
+    if (userStr) {
+      setUserRole(JSON.parse(userStr).role);
     }
 
     // Adiciona um tempo mínimo de 5s para a tela de carregamento aparecer bonitinha
@@ -80,7 +86,11 @@ export default function Home() {
       {/* Header section with search */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-500/20 text-primary-400 border border-primary-500/30 tracking-wider">PORTAL DO COLABORADOR</span>
+          {userRole === 'ADMIN' ? (
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30 tracking-wider">PORTAL DE TI (ADMIN)</span>
+          ) : (
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-500/20 text-primary-400 border border-primary-500/30 tracking-wider">PORTAL DO COLABORADOR</span>
+          )}
         </div>
         <h1 className="text-4xl font-bold tracking-tight">Olá, Erione</h1>
         <p className="text-foreground/60 text-lg">Como podemos ajudar você hoje?</p>
