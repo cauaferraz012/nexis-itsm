@@ -72,6 +72,13 @@ export default function LoginPage() {
         throw new Error("Acesso Negado: Esta conta não possui privilégios de Administrador da TI.");
       }
 
+      // Bloqueia Admin tentando entrar pelo Portal do Colaborador
+      if (selectedPortal === 'USER' && data.user.role === 'ADMIN') {
+        localStorage.removeItem("itsm_token");
+        localStorage.removeItem("itsm_user");
+        throw new Error("Conta de Administrador detectada. Por favor, volte e utilize o Portal de TI para fazer login.");
+      }
+
       // Redireciona para o Dashboard correto, independente de onde logou
       if (data.user.role === 'ADMIN') {
         router.push("/admin");
