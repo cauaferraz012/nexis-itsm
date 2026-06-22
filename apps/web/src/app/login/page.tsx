@@ -65,6 +65,13 @@ export default function LoginPage() {
       localStorage.setItem("itsm_token", data.access_token);
       localStorage.setItem("itsm_user", JSON.stringify(data.user));
 
+      // Bloqueia usuário comum tentando entrar pelo Portal de TI
+      if (selectedPortal === 'ADMIN' && data.user.role !== 'ADMIN') {
+        localStorage.removeItem("itsm_token");
+        localStorage.removeItem("itsm_user");
+        throw new Error("Acesso Negado: Esta conta não possui privilégios de Administrador da TI.");
+      }
+
       // Redireciona para o Dashboard correto, independente de onde logou
       if (data.user.role === 'ADMIN') {
         router.push("/admin");

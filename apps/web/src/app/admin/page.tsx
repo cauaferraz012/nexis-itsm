@@ -99,10 +99,13 @@ export default function AdminDashboardPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl bg-primary-500/20 text-primary-400 border border-primary-500/30">
+          <div className="p-3 rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
             <Shield className="w-8 h-8" />
           </div>
           <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30 tracking-wider">PORTAL DE TI (ADMIN)</span>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">Centro de Comando</h1>
             <p className="text-foreground/60">Visão global analítica dos chamados da empresa</p>
           </div>
