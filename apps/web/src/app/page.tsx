@@ -11,6 +11,8 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tickets, setTickets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('ALL');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   const router = useRouter();
 
@@ -136,9 +138,33 @@ export default function Home() {
 
       {/* Summary section */}
       <section className="pt-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <h2 className="text-2xl font-bold">Meus Chamados Recentes</h2>
-          <button className="text-primary-500 hover:text-primary-400 text-sm font-medium">Ver todos</button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-white/10 hover:bg-white/5 transition-colors flex items-center gap-2"
+            >
+              <Clock className="w-3 h-3" />
+              {sortOrder === 'desc' ? 'Mais Recentes' : 'Mais Antigos'}
+            </button>
+            <button className="text-primary-500 hover:text-primary-400 text-sm font-medium ml-2">Ver todos</button>
+          </div>
+        </div>
+
+        {/* Filtro de Categoria (Pílulas) */}
+        <div className="flex overflow-x-auto pb-4 mb-2 gap-2 hide-scrollbar">
+          {['ALL', 'HARDWARE', 'SOFTWARE', 'NETWORK', 'ACESSOS', 'OUTROS'].map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveTab(cat)}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                activeTab === cat ? 'bg-primary-500 text-white' : 'bg-white/5 border border-white/10 text-foreground/60 hover:text-foreground hover:border-white/20'
+              }`}
+            >
+              {cat === 'ALL' ? 'Todos' : cat === 'NETWORK' ? 'Rede' : cat === 'SOFTWARE' ? 'Software' : cat === 'HARDWARE' ? 'Hardware' : cat === 'ACESSOS' ? 'Acessos' : 'Outros'}
+            </button>
+          ))}
         </div>
 
         <div className="space-y-4">
@@ -149,7 +175,14 @@ export default function Home() {
               <p className="text-foreground/50">Nenhum chamado aberto ainda. Você está com tudo em ordem!</p>
             </GlassCard>
           ) : (
-            tickets.map((ticket, i) => (
+            tickets
+              .filter(t => activeTab === 'ALL' || t.category === activeTab)
+              .sort((a, b) => {
+                const dateA = new Date(a.createdAt).getTime();
+                const dateB = new Date(b.createdAt).getTime();
+                return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+              })
+              .map((ticket, i) => (
               <GlassCard 
                 key={ticket.id} 
                 delay={0.3 + i * 0.1} 

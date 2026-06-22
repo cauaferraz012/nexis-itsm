@@ -19,6 +19,7 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('ALL');
   const [viewMode, setViewMode] = useState<'TABLE' | 'KANBAN'>('TABLE');
   const [quickFilter, setQuickFilter] = useState<'ALL' | 'MINE' | 'UNASSIGNED' | 'OVERDUE'>('ALL');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,6 +87,10 @@ export default function AdminDashboardPage() {
     if (quickFilter === 'OVERDUE') return t.slaStatus === 'BREACHED' || (t.slaStatus === 'RUNNING' && t.slaDeadline && new Date(t.slaDeadline) < new Date());
     
     return true;
+  }).sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
   });
 
   const kpiAbertos = tickets.filter(t => t.status === 'OPEN').length;
@@ -278,6 +283,14 @@ export default function AdminDashboardPage() {
                 <span className="text-sm font-semibold bg-white/10 px-2 py-0.5 rounded-full">{filteredTickets.length}</span>
               </div>
               <div className="flex flex-wrap items-center gap-3">
+                {/* Sort Order */}
+                <button 
+                  onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg border border-white/10 hover:bg-white/5 transition-colors flex items-center gap-2"
+                >
+                  <Clock className="w-3 h-3" />
+                  {sortOrder === 'desc' ? 'Mais Recentes' : 'Mais Antigos'}
+                </button>
                 {/* Quick Filters */}
                 <div className="flex bg-black/40 rounded-lg p-1 border border-white/10">
                   <button onClick={() => setQuickFilter('ALL')} className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${quickFilter === 'ALL' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white'}`}>Todos</button>
